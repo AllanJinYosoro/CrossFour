@@ -256,7 +256,7 @@ if __name__ == "__main__":
     parser.add_argument("--buffer_capacity", type=int, default=100000, help="Replay buffer capacity.")
     parser.add_argument("--target_update_frequency", type=int, default=1000, help="Frequency of updating target network.")
     parser.add_argument("--opponent_update_frequency", type=int, default=10000, help="Frequency of updating opponent network.")
-    parser.add_argument("--num_episodes", type=int, default=2000000, help="Number of episodes for training.")
+    parser.add_argument("--num_episodes", type=int, default=500000, help="Number of episodes for training.")
     parser.add_argument("--oppo_model_path", type=str, default="./model/Rainbow2.pth", help="Path to load the opponent model.")
     parser.add_argument("--cont_model_path", type=str, default="./model/Rainbow2.pth", help="Path to load the continue model.")
     parser.add_argument("--save_model_path", type=str, default="./model/Rainbow3.pth", help="Path to save the model.")

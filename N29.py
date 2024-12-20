@@ -191,7 +191,28 @@ def policy1(observation):
     
     return best_action
 
+def policy2(observation):
+    observation = convert_state(observation.copy())
+    
+    # Flatten the observation and convert to tensor
+    state = torch.FloatTensor(observation).unsqueeze(0).unsqueeze(0).to(device)  # Convert to tensor and add batch dimension
 
+    # Get Q-values for all actions
+    with torch.no_grad():
+        q_atoms = dqn_model(state)
+        q_values = dqn_model.get_q_values(q_atoms)
+
+    # Identify available actions (columns that are not full)
+    available_actions = [col for col in range(q_values.shape[1]) if observation[0][col] == 0]
+    
+    # If all columns are full, return a random action (edge case)
+    if not available_actions:
+        return random.choice(range(q_values.shape[1]))
+
+    # Choose the action with the highest Q-value among available actions
+    best_action = max(available_actions, key=lambda col: q_values[0, col].item())
+    
+    return best_action
 
 
 # Convert 2 to -1 for better learning
