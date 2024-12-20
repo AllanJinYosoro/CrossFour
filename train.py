@@ -129,27 +129,50 @@ def train(args):
         done = False
         episode_transitions = []  # 存储智能体的转移
         total_reward = 0  # 记录每个 episode 的总奖励
+        agent_first = random.choice([True, False]) #随机先手还是后手
 
         ############## 智能体与对手的游戏循环 ##############
         while not done:
-            # 智能体的动作（探索与利用）
-            action = get_action_from_atoms(state, q_network)
-            next_state, reward, done, _ = env.step(action)
-            total_reward += reward  # 累积奖励
+            if agent_first:
+                # 智能体先手
+                action = get_action_from_atoms(state, q_network)
+                next_state, reward, done, _ = env.step(action)
+                total_reward += reward  # 累积奖励
 
-            if done:
-                episode_transitions.append((state, action, reward, next_state, done))
-                break
+                if done:
+                    # 智能体的最终转移
+                    episode_transitions.append((state, action, reward, next_state, done))
+                    break
 
-            # 对手使用最大 Q 策略
-            opponent_action = get_action_from_atoms(next_state, opponent_model)
-            state_after_opponent, opponent_reward, done, _ = env.step(opponent_action)
+                # 对手行动
+                opponent_action = get_action_from_atoms(next_state, opponent_model)
+                state_after_opponent, opponent_reward, done, _ = env.step(opponent_action)
 
-            # 存储智能体的转移
-            episode_transitions.append((state, action, reward, state_after_opponent, done))
+                # 智能体的转移（注意，我们只记录智能体的动作）
+                episode_transitions.append((state, action, reward, state_after_opponent, done))
 
-            # 更新当前状态
-            state = state_after_opponent.copy()
+                # 更新当前状态
+                state = state_after_opponent.copy()
+
+            else:
+                # 对手先手
+                opponent_action = get_action_from_atoms(state, opponent_model)
+                state_after_opponent, opponent_reward, done, _ = env.step(opponent_action)
+
+                if done:
+                    # 如果对手先手直接结束，则跳出
+                    break
+
+                # 智能体行动
+                action = get_action_from_atoms(state_after_opponent, q_network)
+                next_state, reward, done, _ = env.step(action)
+                total_reward += reward  # 累积奖励
+
+                # 智能体的转移（注意，我们只记录智能体的动作）
+                episode_transitions.append((state_after_opponent, action, reward, next_state, done))
+
+                # 更新当前状态
+                state = next_state.copy()
 
         # 将智能体的转移存入经验回放缓冲区
         for transition in episode_transitions:
