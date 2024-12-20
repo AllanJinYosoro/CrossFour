@@ -1,6 +1,7 @@
 import re
 import matplotlib.pyplot as plt
 import os
+import math
 
 def parse_log_file(file_path):
     """
@@ -39,6 +40,7 @@ def parse_log_file(file_path):
 
     return episodes, losses, opponent_update_episodes
 
+
 def plot_loss_curve(episodes, losses, opponent_update_episodes, output_path):
     """
     绘制 Loss 曲线并标记对手模型更新点，用竖虚线表示。
@@ -49,23 +51,37 @@ def plot_loss_curve(episodes, losses, opponent_update_episodes, output_path):
         opponent_update_episodes (list): 对手模型更新的 Episode 列表。
         output_path (str): 保存图像的路径。
     """
+    # 创建一个画布，并设置大小
     plt.figure(figsize=(12, 6))
-    plt.plot(episodes, losses, label="Loss", color="blue", linewidth=1.5)
 
-    # 添加对手模型更新点的竖虚线
+    # 第一个子图：普通Loss曲线
+    plt.subplot(2, 1, 1)  # 参数分别为行数、列数、子图索引
+    plt.plot(episodes, losses, label="Loss", color="blue", linewidth=1.5)
     for update_episode in opponent_update_episodes:
         plt.axvline(x=update_episode, color="red", linestyle="--", alpha=0.7, label="Opponent Model Updated" if update_episode == opponent_update_episodes[0] else "")
-
     plt.xlabel("Episode")
     plt.ylabel("Loss")
-    plt.title("Loss Curve with Opponent Model Updates")
+    plt.title("Loss Curve")
     plt.grid(True)
     plt.legend()
-    plt.tight_layout()
 
-    # 保存为 PNG 文件
+    # 第二个子图：Log Loss曲线
+    plt.subplot(2, 1, 2)
+    plt.plot(episodes, [math.log(loss + 1e-9) for loss in losses], label="Log Loss", color="green", linewidth=1.5)
+    for update_episode in opponent_update_episodes:
+        plt.axvline(x=update_episode, color="red", linestyle="--", alpha=0.7, label="Opponent Model Updated" if update_episode == opponent_update_episodes[0] else "")
+    plt.xlabel("Episode")
+    plt.ylabel("Log Loss")
+    plt.title("Log Loss Curve")
+    plt.grid(True)
+    plt.legend()
+
+    # 调整子图间距
+    plt.tight_layout()
+    # 保存图像
     plt.savefig(output_path)
-    print(f"Loss curve saved to {output_path}")
+    print(f"Loss curves saved to {output_path}")
+    # 关闭画布
     plt.close()
 
 def get_latest_log_file(log_dir):
